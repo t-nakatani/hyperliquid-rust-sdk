@@ -35,6 +35,8 @@ pub enum InfoRequest {
     #[serde(rename = "clearinghouseState")]
     UserState {
         user: Address,
+        #[serde(skip_serializing_if = "Option::is_none")]
+        dex: Option<String>,
     },
     #[serde(rename = "batchClearinghouseStates")]
     UserStates {
@@ -49,6 +51,8 @@ pub enum InfoRequest {
     },
     OpenOrders {
         user: Address,
+        #[serde(skip_serializing_if = "Option::is_none")]
+        dex: Option<String>,
     },
     OrderStatus {
         user: Address,
@@ -61,6 +65,8 @@ pub enum InfoRequest {
     AllMids,
     UserFills {
         user: Address,
+        #[serde(skip_serializing_if = "Option::is_none")]
+        dex: Option<String>,
     },
     #[serde(rename_all = "camelCase")]
     FundingHistory {
@@ -89,6 +95,8 @@ pub enum InfoRequest {
     },
     HistoricalOrders {
         user: Address,
+        #[serde(skip_serializing_if = "Option::is_none")]
+        dex: Option<String>,
     },
     ActiveAssetData {
         user: Address,
@@ -183,12 +191,28 @@ impl InfoClient {
     }
 
     pub async fn open_orders(&self, address: Address) -> Result<Vec<OpenOrdersResponse>> {
-        let input = InfoRequest::OpenOrders { user: address };
+        self.open_orders_for_dex(address, None).await
+    }
+
+    pub async fn open_orders_for_dex(
+        &self,
+        address: Address,
+        dex: Option<String>,
+    ) -> Result<Vec<OpenOrdersResponse>> {
+        let input = InfoRequest::OpenOrders { user: address, dex };
         self.send_info_request(input).await
     }
 
     pub async fn user_state(&self, address: Address) -> Result<UserStateResponse> {
-        let input = InfoRequest::UserState { user: address };
+        self.user_state_for_dex(address, None).await
+    }
+
+    pub async fn user_state_for_dex(
+        &self,
+        address: Address,
+        dex: Option<String>,
+    ) -> Result<UserStateResponse> {
+        let input = InfoRequest::UserState { user: address, dex };
         self.send_info_request(input).await
     }
 
@@ -233,7 +257,15 @@ impl InfoClient {
     }
 
     pub async fn user_fills(&self, address: Address) -> Result<Vec<UserFillsResponse>> {
-        let input = InfoRequest::UserFills { user: address };
+        self.user_fills_for_dex(address, None).await
+    }
+
+    pub async fn user_fills_for_dex(
+        &self,
+        address: Address,
+        dex: Option<String>,
+    ) -> Result<Vec<UserFillsResponse>> {
+        let input = InfoRequest::UserFills { user: address, dex };
         self.send_info_request(input).await
     }
 
@@ -308,7 +340,15 @@ impl InfoClient {
     }
 
     pub async fn historical_orders(&self, address: Address) -> Result<Vec<OrderInfo>> {
-        let input = InfoRequest::HistoricalOrders { user: address };
+        self.historical_orders_for_dex(address, None).await
+    }
+
+    pub async fn historical_orders_for_dex(
+        &self,
+        address: Address,
+        dex: Option<String>,
+    ) -> Result<Vec<OrderInfo>> {
+        let input = InfoRequest::HistoricalOrders { user: address, dex };
         self.send_info_request(input).await
     }
 
