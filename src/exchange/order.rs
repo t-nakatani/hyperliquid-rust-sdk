@@ -80,6 +80,9 @@ pub struct MarketCloseParams<'a> {
     pub slippage: Option<f64>,
     pub cloid: Option<Uuid>,
     pub wallet: Option<&'a PrivateKeySigner>,
+    /// Dex name for HIP-3 deployed perps (e.g. "HyperliquidDeploySpot").
+    /// When set, uses dex-aware user_state and meta lookups.
+    pub dex_name: Option<&'a str>,
 }
 
 #[derive(Debug)]

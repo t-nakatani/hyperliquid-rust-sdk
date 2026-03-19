@@ -372,7 +372,10 @@ impl ExchangeClient {
             _ => return Err(Error::GenericRequest("Invalid base URL".to_string())),
         };
         let info_client = InfoClient::new(None, Some(base_url)).await?;
-        let user_state = info_client.user_state(wallet.address()).await?;
+        let dex = params.dex_name.map(|s| s.to_string());
+        let user_state = info_client
+            .user_state_for_dex(wallet.address(), dex)
+            .await?;
 
         let position = user_state
             .asset_positions
@@ -414,15 +417,10 @@ impl ExchangeClient {
         slippage: f64,
         px: Option<f64>,
     ) -> Result<(f64, u32)> {
-        let base_url = match self.http_client.base_url.as_str() {
-            "https://api.hyperliquid.xyz" => BaseUrl::Mainnet,
-            "https://api.hyperliquid-testnet.xyz" => BaseUrl::Testnet,
-            _ => return Err(Error::GenericRequest("Invalid base URL".to_string())),
-        };
-        let info_client = InfoClient::new(None, Some(base_url)).await?;
-        let meta = info_client.meta().await?;
-
-        let asset_meta = meta
+        // Use self.meta (populated at construction with HIP-3 assets) instead of
+        // creating a new InfoClient that only sees standard perps.
+        let asset_meta = self
+            .meta
             .universe
             .iter()
             .find(|a| a.name == asset)
@@ -439,6 +437,12 @@ impl ExchangeClient {
         let px = if let Some(px) = px {
             px
         } else {
+            let base_url = match self.http_client.base_url.as_str() {
+                "https://api.hyperliquid.xyz" => BaseUrl::Mainnet,
+                "https://api.hyperliquid-testnet.xyz" => BaseUrl::Testnet,
+                _ => return Err(Error::GenericRequest("Invalid base URL".to_string())),
+            };
+            let info_client = InfoClient::new(None, Some(base_url)).await?;
             let all_mids = info_client.all_mids().await?;
             all_mids
                 .get(asset)

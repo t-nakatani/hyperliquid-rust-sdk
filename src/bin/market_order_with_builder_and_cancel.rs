@@ -68,6 +68,7 @@ async fn main() {
         slippage: Some(0.01), // 1% slippage
         cloid: None,
         wallet: None,
+        dex_name: None,
     };
 
     let response = exchange_client
